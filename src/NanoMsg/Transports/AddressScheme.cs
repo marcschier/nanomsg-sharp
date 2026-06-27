@@ -28,6 +28,9 @@ internal enum AddressScheme
 
     /// <summary>DTLS-over-UDP datagram transport (<c>dtls+udp://</c>); provided by NanoMsgSharp.Extensions.</summary>
     DtlsUdp,
+
+    /// <summary>QUIC transport (<c>quic://</c>): SP over a bidirectional QUIC stream (.NET 8+).</summary>
+    Quic,
 }
 
 /// <summary>An optional IPv4/IPv6 restriction parsed from a scheme suffix (such as <c>tcp4</c>/<c>tcp6</c>).</summary>

@@ -60,3 +60,7 @@ NanoMsgSharp↔NanoMsgSharp only: NNG's UDP transport is *experimental* and abse
 `libnng` packages (and its wire format is documented as subject to change), so it cannot be
 wire-verified against native NNG.
 
+The `quic` transport is also validated NanoMsgSharp↔NanoMsgSharp only: nanomsg has no QUIC transport,
+and NNG's QUIC is an experimental MsQuic-based fork (focused on MQTT, absent from released `libnng`
+packages) with no standard SP-over-QUIC wire format, so there is no native QUIC peer to verify against.
+

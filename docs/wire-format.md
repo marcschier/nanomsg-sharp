@@ -87,6 +87,12 @@ byte:  0     1       2..3        4..5         6..7        8..11       12..15    
 
 The `dtls+udp://` transport (the optional `NanoMsgSharp.Dtls` package) carries each SP message as one DTLS application datagram over the same per-packet model, using [DtlsSharp](https://www.nuget.org/packages/DtlsSharp) for the DTLS 1.2/1.3 handshake and record protection. After the DTLS handshake, the two peers exchange their 8-byte SP headers over the secure channel to negotiate the protocol, then send DATA datagrams.
 
+## SP-over-QUIC (quic)
+
+The QUIC transport (`quic://`, core package, **.NET 8+**) carries the SP protocol over a **single bidirectional QUIC stream**, reusing the exact same wire format as the stream transports: after the QUIC/TLS handshake the two peers exchange their 8-byte `SpHeader`s on the stream and then frame each SP message with the same 8-byte length prefix (see *Message framing* above). QUIC is always encrypted, so binding requires a server certificate; the ALPN protocol identifier is `nmsg-sp`. The transport uses the in-box `System.Net.Quic` and a working MsQuic provider; where MsQuic is unavailable (or on `netstandard` targets) it throws `PlatformNotSupportedException`.
+
+> SP-over-QUIC is a NanoMsgSharp mapping: nanomsg has no QUIC transport, and NNG's QUIC is an experimental, MsQuic-based fork (focused on MQTT) with no standard SP-over-QUIC wire format — so this transport is validated NanoMsgSharp↔NanoMsgSharp only.
+
 ## Transports
 
 | Scheme | Mapping |
@@ -98,8 +104,9 @@ The `dtls+udp://` transport (the optional `NanoMsgSharp.Dtls` package) carries e
 | `ws://host:port/path` | WebSocket, one binary message per SP message |
 | `wss://host:port/path` | WebSocket over TLS |
 | `udp://host:port` | UDP datagram, one SP message per packet (experimental) |
+| `quic://host:port` | QUIC, SP over a bidirectional QUIC stream (.NET 8+, needs MsQuic) |
 | `dtls+udp://host:port` | DTLS-secured UDP datagram (`NanoMsgSharp.Dtls` package) |
 
-Each scheme also accepts a `4`/`6` address-family suffix (`tcp4`, `udp6`, `dtls+udp4`, …) to force IPv4 or IPv6.
+Each scheme also accepts a `4`/`6` address-family suffix (`tcp4`, `udp6`, `quic4`, `dtls+udp4`, …) to force IPv4 or IPv6.
 
 

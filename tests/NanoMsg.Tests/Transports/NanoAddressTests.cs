@@ -109,12 +109,23 @@ public sealed class NanoAddressTests
     }
 
     [Test]
+    public async Task Parses_quic_scheme()
+    {
+        NanoAddress quic = NanoAddress.Parse("quic://127.0.0.1:8200");
+        await Assert.That(quic.Scheme).IsEqualTo(AddressScheme.Quic);
+        await Assert.That(quic.Host).IsEqualTo("127.0.0.1");
+        await Assert.That(quic.Port).IsEqualTo(8200);
+    }
+
+    [Test]
     [Arguments("tcp4://127.0.0.1:5555", "tcp", "IPv4")]
     [Arguments("tcp6://[::1]:5555", "tcp", "IPv6")]
     [Arguments("tls+tcp4://127.0.0.1:5555", "tls+tcp", "IPv4")]
     [Arguments("ws6://[::1]:8080/x", "ws", "IPv6")]
     [Arguments("udp4://127.0.0.1:9000", "udp", "IPv4")]
     [Arguments("dtls+udp6://[::1]:9000", "dtls+udp", "IPv6")]
+    [Arguments("quic4://127.0.0.1:9100", "quic", "IPv4")]
+    [Arguments("quic6://[::1]:9100", "quic", "IPv6")]
     public async Task Parses_family_scheme_suffixes(string input, string baseScheme, string family)
     {
         NanoAddress address = NanoAddress.Parse(input);
@@ -125,6 +136,7 @@ public sealed class NanoAddressTests
             "ws" => AddressScheme.Ws,
             "udp" => AddressScheme.Udp,
             "dtls+udp" => AddressScheme.DtlsUdp,
+            "quic" => AddressScheme.Quic,
             _ => throw new ArgumentOutOfRangeException(nameof(baseScheme)),
         };
         AddressFamilyPreference expectedFamily =

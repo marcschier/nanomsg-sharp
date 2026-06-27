@@ -33,6 +33,7 @@ internal static class TransportFactory
         AddressScheme.Ws => new WsTransport(),
         AddressScheme.Wss => new WsTransport(),
         AddressScheme.Udp => new UdpTransport(),
+        AddressScheme.Quic => new QuicTransport(),
         _ => ForRegistered(scheme),
     };
 

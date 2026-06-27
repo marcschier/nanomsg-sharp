@@ -22,7 +22,7 @@ NanoMsgSharp is layered so that each scalability protocol is written once agains
 ├─────────────────────────────────────────────────────────────┤
 │ Transports (NanoMsg.Transports)                              │
 │   inproc, tcp, tls+tcp, ipc (UDS / named pipe), ws, wss,     │
-│   udp (+ dtls+udp via NanoMsgSharp.Dtls) — each an           │
+│   udp, quic (+ dtls+udp via NanoMsgSharp.Dtls) — each an     │
 │   INanoConnection exposing PipeReader/PipeWriter.            │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -33,6 +33,7 @@ NanoMsgSharp is layered so that each scalability protocol is written once agains
 - **connect** runs a background loop that dials, handshakes, registers a `NanoPipe`, then drives that pipe's read loop until it closes — and reconnects (with `ReconnectInterval` backoff up to `ReconnectIntervalMax`) when it does.
 - The SP handshake (`SpHandshake`) writes the local 8-byte `SpHeader`, reads the peer's, and verifies the two protocols are compatible counterparts. The local protocol is threaded to the transport (via `BindAsync`/`ConnectAsync`) so the WebSocket transport can negotiate it through the `Sec-WebSocket-Protocol` sub-protocol.
 - The `tls+tcp` and `wss` transports add a TLS (`SslStream`) session under the same framing, configured through `NanoSocketOptions` (certificates, validation callback, target host).
+- The `quic` transport (core, .NET 8+) carries the SP protocol over a single bidirectional QUIC stream using the in-box `System.Net.Quic`: the same 8-byte SP handshake and length-prefix framing as the stream transports, always TLS-encrypted (ALPN `nmsg-sp`). It requires MsQuic and throws `PlatformNotSupportedException` where it is unavailable (or on `netstandard`).
 - The `ws`/`wss` transports follow the SP-over-WebSocket mapping: the SP handshake is **not** sent on the wire (the protocol is the sub-protocol) and each SP message is one binary WebSocket message. `WebSocketConnection` keeps the rest of the stack unchanged by synthesising the handshake locally and re-framing between length-prefixed frames and whole WebSocket messages.
 - The `udp` transport (core) and `dtls+udp` transport (the `NanoMsgSharp.Dtls` package) are datagram transports: each SP message is one datagram. They share an internal `DatagramConnection` re-framer (the same synthesise-handshake + message re-framing approach as WebSockets), over an `IDatagramChannel` backed by a raw UDP socket or a DTLS connection. External transports register with `TransportFactory` for their scheme; `udp` is built in, `dtls+udp` registers from the `NanoMsgSharp.Dtls` assembly.
 

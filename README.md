@@ -12,7 +12,7 @@ A pure, dependency-free, **NativeAOT-ready** .NET implementation of the **Scalab
 - **Zero-copy where it counts**: `PipeReader`/`PipeWriter` all the way down, `ReadOnlySequence<byte>` message slices, `BinaryPrimitives` headers, `ref struct` readers — no allocations on the hot path.
 - **Idiomatic modern async**: strongly-typed sockets, `ValueTask` send/receive, `CancellationToken`, `IAsyncDisposable`.
 - **NativeAOT & trimming clean** on .NET 8/9/10 — the library is annotated `IsAotCompatible` and the test suite itself is verified running as a NativeAOT binary.
-- **No native dependency**: every transport is built on in-box BCL sockets, pipes, TLS, and WebSockets.
+- **No native dependency**: every transport is built on in-box BCL sockets, pipes, TLS, and WebSockets. (The optional `quic://` transport uses the in-box `System.Net.Quic`, which relies on MsQuic — bundled with Windows 11 / Windows Server 2022, or the `libmsquic` package on Linux.)
 
 ## Supported target frameworks
 
@@ -49,11 +49,14 @@ A pure, dependency-free, **NativeAOT-ready** .NET implementation of the **Scalab
 | `ws://` | WebSocket (SP-over-WebSocket mapping) | core |
 | `wss://` | WebSocket over TLS | core |
 | `udp://` | UDP datagram (one SP message per packet; *experimental*) | core |
+| `quic://` | QUIC — SP over a bidirectional QUIC stream, always TLS (**.NET 8+**, needs MsQuic) | core |
 | `dtls+udp://` | DTLS-secured UDP datagram | `NanoMsgSharp.Dtls` |
 
-Each scheme also accepts an explicit address-family suffix — `tcp4`/`tcp6`, `tls+tcp4`/`6`, `ws4`/`6`, `wss4`/`6`, `udp4`/`6`, `dtls+udp4`/`6` — to force IPv4 or IPv6.
+Each scheme also accepts an explicit address-family suffix — `tcp4`/`tcp6`, `tls+tcp4`/`6`, `ws4`/`6`, `wss4`/`6`, `udp4`/`6`, `quic4`/`6`, `dtls+udp4`/`6` — to force IPv4 or IPv6.
 
-TLS and DTLS endpoints are configured through `NanoSocketOptions` (server certificate, client certificates, remote-certificate validation callback, and target host).
+TLS, QUIC, and DTLS endpoints are configured through `NanoSocketOptions` (server certificate, client certificates, remote-certificate validation callback, and target host).
+
+The `quic://` transport carries the SP protocol over a single bidirectional QUIC stream using the in-box `System.Net.Quic`. It requires **.NET 8 or later** and a working MsQuic provider (bundled with Windows 11 / Windows Server 2022, or the `libmsquic` package on Linux); on `netstandard` targets, or where MsQuic is unavailable, binding or dialing a `quic://` endpoint throws `PlatformNotSupportedException`.
 
 The `udp://` transport mirrors NNG's *experimental* UDP transport (unreliable, unordered, one SP message per UDP packet, ≤ 65000 bytes). The DTLS transport lives in the optional **`NanoMsgSharp.Dtls`** package (it depends on [DtlsSharp](https://www.nuget.org/packages/DtlsSharp)); reference it and the `dtls+udp://` scheme registers automatically:
 

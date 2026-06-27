@@ -132,6 +132,9 @@ internal readonly struct NanoAddress
             case "dtls+udp":
                 return TryParseTcp(address, detail, AddressScheme.DtlsUdp, family, out result, out error);
 
+            case "quic":
+                return TryParseTcp(address, detail, AddressScheme.Quic, family, out result, out error);
+
             default:
                 error = $"unsupported scheme '{schemeText}'";
                 return false;
@@ -147,7 +150,7 @@ internal readonly struct NanoAddress
         }
 
         string baseScheme = scheme.Substring(0, scheme.Length - 1);
-        if (baseScheme is "tcp" or "tls+tcp" or "ws" or "wss" or "udp" or "dtls+udp")
+        if (baseScheme is "tcp" or "tls+tcp" or "ws" or "wss" or "udp" or "dtls+udp" or "quic")
         {
             scheme = baseScheme;
             return last == '4' ? AddressFamilyPreference.IPv4 : AddressFamilyPreference.IPv6;
