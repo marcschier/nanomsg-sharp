@@ -8,10 +8,14 @@ namespace NanoMsg.Transports;
 /// A pass-through <see cref="Stream"/> decorator whose <see cref="Flush"/>/<see cref="FlushAsync"/>
 /// are no-ops. Windows named pipes map stream flush to <c>FlushFileBuffers</c>, which blocks until the
 /// peer has drained the pipe; with both handshake ends flushing at once that deadlocks. The bytes are
-/// already delivered by <see cref="WriteAsync(ReadOnlyMemory{byte}, CancellationToken)"/>, so dropping
+/// already delivered by the write methods, so dropping
 /// the flush is safe and removes the stall.
 /// </summary>
+#if NET5_0_OR_GREATER
 [ExcludeFromCodeCoverage(Justification = "Windows-only; covered by the Windows build-test job.")]
+#else
+[ExcludeFromCodeCoverage]
+#endif
 internal sealed class NonFlushingStream : Stream
 {
     private readonly Stream _inner;
@@ -50,22 +54,26 @@ internal sealed class NonFlushingStream : Stream
     /// <inheritdoc/>
     public override int Read(byte[] buffer, int offset, int count) => _inner.Read(buffer, offset, count);
 
+#if !NETSTANDARD2_0
     /// <inheritdoc/>
     public override int Read(Span<byte> buffer) => _inner.Read(buffer);
 
     /// <inheritdoc/>
     public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
         _inner.ReadAsync(buffer, cancellationToken);
+#endif
 
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count) => _inner.Write(buffer, offset, count);
 
+#if !NETSTANDARD2_0
     /// <inheritdoc/>
     public override void Write(ReadOnlySpan<byte> buffer) => _inner.Write(buffer);
 
     /// <inheritdoc/>
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) =>
         _inner.WriteAsync(buffer, cancellationToken);
+#endif
 
     /// <inheritdoc/>
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();

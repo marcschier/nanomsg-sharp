@@ -6,6 +6,11 @@ using System.IO.Pipelines;
 using System.Threading.Channels;
 using NanoMsg.Transports;
 using NanoMsg.Wire;
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+using PipeSignal = System.Threading.Tasks.TaskCompletionSource<bool>;
+#else
+using PipeSignal = System.Threading.Tasks.TaskCompletionSource;
+#endif
 
 namespace NanoMsg.Protocols;
 
@@ -26,7 +31,7 @@ internal abstract class NanoSocketCore : IAsyncDisposable
     private readonly List<Task> _loops = [];
     private readonly CancellationTokenSource _shutdown = new();
     private readonly Channel<InboundMessage> _inbound = Channel.CreateUnbounded<InboundMessage>();
-    private TaskCompletionSource _pipeAdded = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private PipeSignal _pipeAdded = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private uint _roundRobin;
     private int _disposed;
 
@@ -309,7 +314,11 @@ internal abstract class NanoSocketCore : IAsyncDisposable
         ReadOnlySequence<byte> head = sequence.Slice(0, prefix.Length);
         if (head.IsSingleSegment)
         {
+#if NETSTANDARD2_0
+            return head.First.Span.SequenceEqual(prefix);
+#else
             return head.FirstSpan.SequenceEqual(prefix);
+#endif
         }
 
         byte[] rented = ArrayPool<byte>.Shared.Rent(prefix.Length);
@@ -522,9 +531,9 @@ internal abstract class NanoSocketCore : IAsyncDisposable
             _pipes.Add(pipe);
         }
 
-        TaskCompletionSource previous = Interlocked.Exchange(
+        PipeSignal previous = Interlocked.Exchange(
             ref _pipeAdded,
-            new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
+            new PipeSignal(TaskCreationOptions.RunContinuationsAsynchronously));
         previous.TrySetResult();
     }
 
@@ -536,7 +545,17 @@ internal abstract class NanoSocketCore : IAsyncDisposable
         }
     }
 
-    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed != 0, this);
+    private void ThrowIfDisposed()
+    {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+        if (_disposed != 0)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+#else
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+#endif
+    }
 
     /// <summary>Throws if the socket has been disposed.</summary>
     private protected void ThrowIfDisposedCore() => ThrowIfDisposed();

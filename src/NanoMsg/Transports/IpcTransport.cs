@@ -2,8 +2,10 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
-using System.Net.Sockets;
 using NanoMsg.Wire;
+#if !NETSTANDARD2_0
+using System.Net.Sockets;
+#endif
 
 namespace NanoMsg.Transports;
 
@@ -22,11 +24,20 @@ internal sealed class IpcTransport : INanoTransport
         SpProtocol localProtocol,
         CancellationToken cancellationToken)
     {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+        if (PlatformPolyfills.IsWindows())
+#else
         if (OperatingSystem.IsWindows())
+#endif
         {
             return new ValueTask<INanoListener>(new NamedPipeListener(ToPipeName(address.Path)));
         }
 
+#if NETSTANDARD2_0
+        throw new PlatformNotSupportedException(
+            "Unix-domain socket IPC requires netstandard2.1 or a modern .NET runtime; " +
+            "use a Windows named pipe or another transport on netstandard2.0.");
+#else
         Socket socket = new(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         try
         {
@@ -41,6 +52,7 @@ internal sealed class IpcTransport : INanoTransport
         }
 
         return new ValueTask<INanoListener>(new SocketListener(socket));
+#endif
     }
 
     /// <inheritdoc/>
@@ -50,7 +62,11 @@ internal sealed class IpcTransport : INanoTransport
         SpProtocol localProtocol,
         CancellationToken cancellationToken)
     {
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+        if (PlatformPolyfills.IsWindows())
+#else
         if (OperatingSystem.IsWindows())
+#endif
         {
             NamedPipeClientStream client = new(
                 ".",
@@ -61,6 +77,11 @@ internal sealed class IpcTransport : INanoTransport
             return new StreamConnection(new NonFlushingStream(client));
         }
 
+#if NETSTANDARD2_0
+        throw new PlatformNotSupportedException(
+            "Unix-domain socket IPC requires netstandard2.1 or a modern .NET runtime; " +
+            "use a Windows named pipe or another transport on netstandard2.0.");
+#else
         Socket socket = new(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         try
         {
@@ -74,6 +95,7 @@ internal sealed class IpcTransport : INanoTransport
         }
 
         return new StreamConnection(new NetworkStream(socket, ownsSocket: true));
+#endif
     }
 
     private static string ToPipeName(string path) => path.TrimStart('/', '\\');
@@ -99,7 +121,11 @@ internal sealed class IpcTransport : INanoTransport
 }
 
 /// <summary>An <see cref="INanoListener"/> backed by Windows named pipes (one server instance per accept).</summary>
+#if NET5_0_OR_GREATER
 [ExcludeFromCodeCoverage(Justification = "Windows-only; covered by the Windows build-test job.")]
+#else
+[ExcludeFromCodeCoverage]
+#endif
 internal sealed class NamedPipeListener : INanoListener
 {
     private const int PipeBufferSize = 64 * 1024;

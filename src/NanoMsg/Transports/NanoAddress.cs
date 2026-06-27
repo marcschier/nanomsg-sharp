@@ -217,7 +217,7 @@ internal readonly struct NanoAddress
         error = null;
 
         string portText;
-        if (text.StartsWith('['))
+        if (text.Length != 0 && text[0] == '[')
         {
             int close = text.IndexOf(']');
             if (close < 0)

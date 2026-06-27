@@ -1,5 +1,6 @@
 // Copyright (c) marcschier. Licensed under the MIT License.
 
+#if !NETSTANDARD2_0
 using System.Buffers;
 using System.Buffers.Binary;
 using System.IO.Pipelines;
@@ -288,3 +289,4 @@ internal sealed class WebSocketConnection : INanoConnection
         }
     }
 }
+#endif // !NETSTANDARD2_0

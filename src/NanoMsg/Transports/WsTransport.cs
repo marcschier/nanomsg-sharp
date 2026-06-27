@@ -1,11 +1,15 @@
 // Copyright (c) marcschier. Licensed under the MIT License.
 
-using System.Net;
-using System.Net.Security;
+using NanoMsg.Wire;
+#if !NETSTANDARD2_0
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Security.Authentication;
-using NanoMsg.Wire;
+#endif
+#if NET6_0_OR_GREATER
+using System.Net;
+using System.Net.Security;
+#endif
 
 namespace NanoMsg.Transports;
 
@@ -13,10 +17,15 @@ namespace NanoMsg.Transports;
 /// The WebSocket transport (<c>ws://</c> and, over TLS, <c>wss://</c>). It implements the
 /// SP-over-WebSocket mapping used by nanomsg and NNG: the SP protocol is negotiated through the
 /// <c>Sec-WebSocket-Protocol</c> sub-protocol (<c>&lt;name&gt;.sp.nanomsg.org</c>) and each SP message
-/// is carried as one binary WebSocket message (see <see cref="WebSocketConnection"/>). <c>connect</c>
-/// dials with a <see cref="ClientWebSocket"/>; <c>bind</c> runs a manual <see cref="TcpListener"/>
-/// (optionally wrapped in <see cref="SslStream"/>) that performs the HTTP upgrade by hand, so the same
-/// code serves both <c>ws</c> and <c>wss</c>.
+/// is carried as one binary WebSocket message (see <c>WebSocketConnection</c>). <c>connect</c>
+/// dials with a <c>ClientWebSocket</c>; <c>bind</c> runs a manual <c>TcpListener</c> (optionally
+/// wrapped in <c>SslStream</c>) that performs the HTTP upgrade by hand.
+/// <para>
+/// On <c>netstandard2.0</c> the WebSocket transport is unavailable (no in-box WebSocket message APIs);
+/// the server side additionally requires <c>WebSocket.CreateFromStream</c> (net6+), so <c>bind</c> is
+/// supported only on net6+ — on <c>netstandard2.1</c> the client (<c>connect</c>) works but the server
+/// throws <see cref="PlatformNotSupportedException"/>.
+/// </para>
 /// </summary>
 internal sealed class WsTransport : INanoTransport
 {
@@ -27,6 +36,7 @@ internal sealed class WsTransport : INanoTransport
         SpProtocol localProtocol,
         CancellationToken cancellationToken)
     {
+#if NET6_0_OR_GREATER
         bool secure = address.Scheme == AddressScheme.Wss;
         if (secure && options.TlsServerCertificate is null)
         {
@@ -49,6 +59,11 @@ internal sealed class WsTransport : INanoTransport
 
         int port = ((IPEndPoint)listener.LocalEndpoint).Port;
         return new ValueTask<INanoListener>(new WsListener(listener, port, options, localProtocol, secure));
+#else
+        throw new PlatformNotSupportedException(
+            "Binding a 'ws'/'wss' endpoint requires net6.0 or later (the WebSocket server uses " +
+            "WebSocket.CreateFromStream); the WebSocket client is available on net and netstandard2.1.");
+#endif
     }
 
     /// <inheritdoc/>
@@ -58,17 +73,24 @@ internal sealed class WsTransport : INanoTransport
         SpProtocol localProtocol,
         CancellationToken cancellationToken)
     {
+#if NETSTANDARD2_0
+        await Task.CompletedTask.ConfigureAwait(false);
+        throw new PlatformNotSupportedException(
+            "The 'ws'/'wss' transport is not available on netstandard2.0 (no in-box WebSocket message " +
+            "APIs); use netstandard2.1 or a modern .NET target, or another transport.");
+#else
         bool secure = address.Scheme == AddressScheme.Wss;
         SpProtocol peerProtocol = localProtocol.Counterpart();
         ClientWebSocket client = new();
         client.Options.AddSubProtocol($"{peerProtocol.WireName()}.sp.nanomsg.org");
         if (secure)
         {
+#if NET7_0_OR_GREATER
             if (options.TlsRemoteValidationCallback is not null)
             {
                 client.Options.RemoteCertificateValidationCallback = options.TlsRemoteValidationCallback;
             }
-
+#endif
             if (options.TlsClientCertificates is not null)
             {
                 client.Options.ClientCertificates = options.TlsClientCertificates;
@@ -89,14 +111,18 @@ internal sealed class WsTransport : INanoTransport
         }
 
         return new WebSocketConnection(client, peerProtocol);
+#endif
     }
 
+#if NET6_0_OR_GREATER
     private static IPAddress ParseHost(string host) =>
         IPAddress.TryParse(host, out IPAddress? ip)
             ? ip
             : throw new NanoMsgException($"WebSocket bind host '{host}' must be an IP address or '*'.");
+#endif
 }
 
+#if NET6_0_OR_GREATER
 /// <summary>
 /// An <see cref="INanoListener"/> that accepts raw TCP sockets, optionally negotiates TLS, performs
 /// the WebSocket HTTP upgrade by hand, and surfaces each upgraded peer as a <see cref="WebSocketConnection"/>.
@@ -218,3 +244,4 @@ internal sealed class WsListener : INanoListener
         }
     }
 }
+#endif

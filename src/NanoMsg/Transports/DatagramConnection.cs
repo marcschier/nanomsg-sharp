@@ -10,7 +10,7 @@ namespace NanoMsg.Transports;
 
 /// <summary>
 /// Adapts a message-oriented <see cref="IDatagramChannel"/> (raw UDP or DTLS) to the byte-channel
-/// <see cref="INanoConnection"/> contract, exactly as <see cref="WebSocketConnection"/> does for
+/// <see cref="INanoConnection"/> contract, exactly as <c>WebSocketConnection</c> does for
 /// WebSockets: the SP protocol is negotiated out of band (by the transport handshake, not the 8-byte SP
 /// header), and each SP message maps directly to one datagram with no length prefix. This connection
 /// <em>synthesises</em> the SP handshake the protocol layer still performs — swallowing the locally

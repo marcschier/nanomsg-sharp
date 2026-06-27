@@ -1,5 +1,7 @@
 // Copyright (c) marcschier. Licensed under the MIT License.
 
+#if NET6_0_OR_GREATER
+
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
@@ -190,3 +192,4 @@ internal static class WsHandshake
         }
     }
 }
+#endif // NET6_0_OR_GREATER

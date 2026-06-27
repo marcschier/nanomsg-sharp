@@ -22,6 +22,15 @@
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
   </ItemGroup>
 
+  <!-- netstandard 2.0/2.1 polyfills (referenced only for those TFMs; see Directory.Build.props). -->
+  <ItemGroup>
+    <PackageVersion Include="PolySharp" Version="1.16.0" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
+    <PackageVersion Include="System.Threading.Channels" Version="9.0.0" />
+    <PackageVersion Include="System.Memory" Version="4.6.3" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
+  </ItemGroup>
+
   <!-- Test stack -->
   <ItemGroup>
     <PackageVersion Include="TUnit" Version="1.56.35" />

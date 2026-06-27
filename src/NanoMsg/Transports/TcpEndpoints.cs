@@ -103,7 +103,12 @@ internal static class TcpEndpoints
             return new IPEndPoint(literal, address.Port);
         }
 
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+        IPAddress[] addresses = await PlatformPolyfills
+            .GetHostAddressesAsync(address.Host, cancellationToken).ConfigureAwait(false);
+#else
         IPAddress[] addresses = await Dns.GetHostAddressesAsync(address.Host, cancellationToken).ConfigureAwait(false);
+#endif
         IPAddress? selected = SelectByFamily(addresses, address.FamilyPreference);
         if (selected is null)
         {

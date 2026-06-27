@@ -48,12 +48,20 @@ internal sealed class TlsTransport : INanoTransport
             options.TlsRemoteValidationCallback);
         try
         {
+#if NETSTANDARD2_0
+            await ssl.AuthenticateAsClientAsync(
+                options.TlsTargetHost ?? address.Host,
+                options.TlsClientCertificates,
+                SslProtocols.None,
+                checkCertificateRevocation: false).ConfigureAwait(false);
+#else
             SslClientAuthenticationOptions auth = new()
             {
                 TargetHost = options.TlsTargetHost ?? address.Host,
                 ClientCertificates = options.TlsClientCertificates,
             };
             await ssl.AuthenticateAsClientAsync(auth, cancellationToken).ConfigureAwait(false);
+#endif
         }
         catch (Exception ex) when (ex is AuthenticationException or IOException or SocketException)
         {
@@ -99,12 +107,20 @@ internal sealed class TlsSocketListener : INanoListener
             _options.TlsRemoteValidationCallback);
         try
         {
+#if NETSTANDARD2_0
+            await ssl.AuthenticateAsServerAsync(
+                _options.TlsServerCertificate,
+                clientCertificateRequired: false,
+                SslProtocols.None,
+                checkCertificateRevocation: false).ConfigureAwait(false);
+#else
             SslServerAuthenticationOptions auth = new()
             {
                 ServerCertificate = _options.TlsServerCertificate,
                 ClientCertificateRequired = false,
             };
             await ssl.AuthenticateAsServerAsync(auth, cancellationToken).ConfigureAwait(false);
+#endif
         }
         catch (Exception ex) when (ex is AuthenticationException or IOException or SocketException)
         {

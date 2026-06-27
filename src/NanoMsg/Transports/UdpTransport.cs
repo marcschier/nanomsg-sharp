@@ -72,7 +72,12 @@ internal sealed class UdpTransport : INanoTransport
         }
     }
 
-    internal static uint NewId() => (uint)Random.Shared.Next(1, int.MaxValue);
+    internal static uint NewId() =>
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+        (uint)Polyfills.SharedRandom.Next(1, int.MaxValue);
+#else
+        (uint)Random.Shared.Next(1, int.MaxValue);
+#endif
 
     private static async Task<(SpProtocol Peer, uint PeerId)> DialHandshakeAsync(
         Socket socket,

@@ -18,7 +18,13 @@ A pure, dependency-free, **NativeAOT-ready** .NET implementation of the **Scalab
 
 | TFM | Notes |
 | --- | --- |
-| `net10.0`, `net9.0`, `net8.0` | Full feature set; NativeAOT supported. |
+| `net10.0`, `net9.0`, `net8.0` | Full feature set; NativeAOT supported. These are the only frameworks the tests, benchmarks, and interop suites run on, and the hot paths are tuned for them. |
+| `netstandard2.1` | Broad reach (.NET Core 3.0+, Mono 6.4+, Xamarin, Unity 2021.2+) via polyfills. Full feature set **except** the `ws`/`wss` **server** (`bind`), which throws `PlatformNotSupportedException` — the WebSocket *client* (`connect`) works. |
+| `netstandard2.0` | Widest reach (.NET Framework 4.6.2+, older Unity/Mono/Xamarin) via polyfills. The `ws`/`wss` transport is unavailable, and `ipc://` is limited to Windows named pipes (Unix-domain sockets need ns2.1+); all other transports and every protocol work. |
+
+> The `netstandard` builds add polyfill packages (`System.Memory`, `System.IO.Pipelines`, `System.Threading.Channels`, `Microsoft.Bcl.AsyncInterfaces`, PolySharp, …) **only** for those target frameworks. The `net8.0`/`net9.0`/`net10.0` output is byte-identical to a build without netstandard support — there is no performance impact on modern runtimes.
+>
+> `NanoMsgSharp.Dtls` targets `netstandard2.1`, `net8.0`, `net9.0`, and `net10.0` (its DTLS dependency does not support `netstandard2.0`).
 
 ## Scalability protocols
 
