@@ -144,4 +144,4 @@ See [NOTICE](NOTICE) for the third-party attributions.
 
 ## 📄 License
 
-[MIT](LICENSE) © marcschier
+[MIT](LICENSE)
