@@ -1,9 +1,10 @@
 name: nuget
 
-# Manually promotes the most recently published NanoMsgSharp package from the repository's GitHub
-# Packages feed to nuget.org using NuGet trusted publishing (OIDC short-lived token — no stored
-# API key). Run this from the Actions tab once a version has been published to GitHub Packages by
-# the tag-triggered CI publish job. Leave "version" blank to promote the latest published version.
+# Manually promotes the latest published NanoMsgSharp packages from the repository's GitHub Packages
+# feed to nuget.org using NuGet trusted publishing (OIDC short-lived token — no stored API key). Run
+# this from the Actions tab once a version has been published to GitHub Packages by the tag-triggered
+# CI publish job. Every package in the feed is promoted; leave "version" blank to promote each
+# package's latest published version.
 
 on:
   workflow_dispatch:
@@ -35,17 +36,31 @@ jobs:
       - name: Download packages from GitHub Packages
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          index=https://nuget.pkg.github.com/marcschier/index.json
+          index="https://nuget.pkg.github.com/${OWNER}/index.json"
           auth="Authorization: Bearer ${GH_TOKEN}"
-          base=$(curl -fsSL -H "$auth" "$index" \
-            | jq -r '.resources[] | select(."@type"=="PackageBaseAddress/3.0.0") | ."@id"' \
-            | head -n1)
-          base=${base%/}
+
+          svc() {
+            curl -fsSL -H "$auth" "$index" \
+              | jq -r --arg t "$1" '[.resources[] | select(."@type"|startswith($t)) | ."@id"] | first'
+          }
+          base=$(svc "PackageBaseAddress/3.0.0"); base=${base%/}
+          search=$(svc "SearchQueryService"); search=${search%/}
+
+          # Discover every package id in the feed; fall back to the known ids if search is unavailable.
+          ids=$(curl -fsSL -H "$auth" "${search}?q=&take=1000&prerelease=true" \
+            | jq -r '.data[].id' 2>/dev/null || true)
+          if [ -z "${ids}" ]; then
+            echo "Search returned nothing; falling back to the known package list." >&2
+            ids="NanoMsgSharp NanoMsgSharp.Dtls"
+          fi
+          echo "Packages to promote:" $ids
+
           mkdir -p ./download
-          for id in NanoMsgSharp; do
+          for id in ${ids}; do
             lower=$(echo "$id" | tr '[:upper:]' '[:lower:]')
             if [ -n "${VERSION}" ]; then
               ver="${VERSION}"
