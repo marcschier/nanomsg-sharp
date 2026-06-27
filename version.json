@@ -7,8 +7,9 @@
     "^refs/tags/v\\d+\\.\\d+\\.\\d+$"
   ],
   "cloudBuild": {
+    "setVersionVariables": false,
     "buildNumber": {
-      "enabled": true
+      "enabled": false
     }
   },
   "release": {
