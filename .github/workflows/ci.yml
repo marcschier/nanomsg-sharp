@@ -164,8 +164,8 @@ jobs:
 
       - name: Pack
         run: |
-          dotnet pack src/NanoMsg/NanoMsg.csproj -c Release -o artifacts
-          dotnet pack src/NanoMsg.Dtls/NanoMsg.Dtls.csproj -c Release -o artifacts
+          dotnet pack src/NanoMsg/NanoMsg.csproj -c Release -o artifacts -p:PublicRelease=true
+          dotnet pack src/NanoMsg.Dtls/NanoMsg.Dtls.csproj -c Release -o artifacts -p:PublicRelease=true
 
       - name: List packages
         run: ls -l artifacts
