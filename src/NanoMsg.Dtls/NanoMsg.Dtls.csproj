@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <PackageId>NanoMsgSharp.Dtls</PackageId>
+    <RootNamespace>NanoMsg.Dtls</RootNamespace>
+    <AssemblyName>NanoMsg.Dtls</AssemblyName>
+    <Description>DTLS-secured UDP datagram transport (dtls+udp://) for NanoMsgSharp, built on DtlsSharp. Adds confidential, authenticated datagram messaging to the nanomsg/NNG scalability protocols.</Description>
+    <PackageTags>nanomsg;nng;scalability-protocols;dtls;udp;datagram;secure;messaging</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NanoMsg\NanoMsg.csproj" />
+    <PackageReference Include="DtlsSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="NanoMsg.Dtls.Tests" />
+  </ItemGroup>
+
+</Project>

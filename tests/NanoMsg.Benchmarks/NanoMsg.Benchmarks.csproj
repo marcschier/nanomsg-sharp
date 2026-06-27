@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsBenchmarkProject>true</IsBenchmarkProject>
+    <Nullable>enable</Nullable>
+    <AssemblyName>NanoMsg.Benchmarks</AssemblyName>
+    <RootNamespace>NanoMsg.Benchmarks</RootNamespace>
+    <!-- BenchmarkDotNet spawns and instruments processes; it runs under the JIT, not AOT. -->
+    <IsAotCompatible>false</IsAotCompatible>
+    <!-- Benchmark classes manage their fixtures via [GlobalSetup]/[GlobalCleanup], not IDisposable. -->
+    <NoWarn>$(NoWarn);CA1001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NanoMsg\NanoMsg.csproj" />
+  </ItemGroup>
+
+</Project>

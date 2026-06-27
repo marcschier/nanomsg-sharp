@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/solution/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="version.json" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/NanoMsg/NanoMsg.csproj" />
+    <Project Path="src/NanoMsg.Dtls/NanoMsg.Dtls.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NanoMsg.Tests/NanoMsg.Tests.csproj" />
+    <Project Path="tests/NanoMsg.Dtls.Tests/NanoMsg.Dtls.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/NanoMsg.Samples/NanoMsg.Samples.csproj" />
+  </Folder>
+</Solution>

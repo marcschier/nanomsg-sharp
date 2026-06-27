@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>NanoMsg.Samples</AssemblyName>
+    <RootNamespace>NanoMsg.Samples</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NanoMsg\NanoMsg.csproj" />
+  </ItemGroup>
+
+</Project>

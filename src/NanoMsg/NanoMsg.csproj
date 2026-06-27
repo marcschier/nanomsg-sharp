@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <PackageId>NanoMsgSharp</PackageId>
+    <RootNamespace>NanoMsg</RootNamespace>
+    <AssemblyName>NanoMsg</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>Pure, dependency-free, NativeAOT-ready .NET implementation of the nanomsg Scalability Protocols (PAIR, REQ/REP, PUB/SUB, PUSH/PULL, SURVEY, BUS) over inproc/tcp/ipc/ws — wire-compatible with C nanomsg, with a zero-copy System.IO.Pipelines data path.</Description>
+    <PackageTags>nanomsg;scalability-protocols;messaging;pubsub;reqrep;pipeline;survey;bus;pipelines;span;aot;high-performance</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="NanoMsg.Tests" />
+    <InternalsVisibleTo Include="NanoMsg.Interop.Tests" />
+    <InternalsVisibleTo Include="NanoMsg.Benchmarks" />
+    <InternalsVisibleTo Include="NanoMsg.Dtls" />
+    <InternalsVisibleTo Include="NanoMsg.Dtls.Tests" />
+  </ItemGroup>
+
+</Project>

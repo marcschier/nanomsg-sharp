@@ -1,0 +1,48 @@
+NanoMsgSharp
+Copyright (c) marcschier
+Licensed under the MIT License (see LICENSE).
+
+================================================================================
+Third-party notices and attributions
+================================================================================
+
+NanoMsgSharp is an independent, clean-room reimplementation of the Scalability
+Protocols (SP) wire protocol for the .NET platform. It does not include or
+derive from the source code of the projects below; it interoperates with them
+by implementing the same publicly documented wire protocol.
+
+--------------------------------------------------------------------------------
+nanomsg
+--------------------------------------------------------------------------------
+The nanomsg library is an open-source project licensed under the MIT License.
+
+    Copyright (c) 2012-2014 Martin Sustrik  All rights reserved.
+    Copyright (c) 2013 GoPivotal, Inc.  All rights reserved.
+    Copyright (c) 2015-2016 Jack R. Dunaway.  All rights reserved.
+    Copyright (c) 2016 Garrett D'Amore <garrett@damore.org>
+
+Project: https://github.com/nanomsg/nanomsg
+"nanomsg" and related marks are the property of their respective owners and are
+used here only nominatively, to describe wire compatibility.
+
+--------------------------------------------------------------------------------
+NNG (nanomsg-next-gen)
+--------------------------------------------------------------------------------
+The NNG library is an open-source project licensed under the MIT License.
+
+    Copyright (c) 2018 Staysail Systems, Inc. <info@staysail.tech>
+    Copyright (c) 2018 Capitar IT Group BV <info@capitar.com>
+    (and contributors)
+
+Project: https://github.com/nanomsg/nng  /  https://nng.nanomsg.org/
+"NNG" and "nanomsg" and related marks are the property of their respective
+owners and are used here only nominatively, to describe wire compatibility.
+
+--------------------------------------------------------------------------------
+Scalability Protocols / SP-over-WebSocket mapping
+--------------------------------------------------------------------------------
+The SP wire protocol and the WebSocket mapping are described in the public
+nanomsg RFCs, including "WebSocket Mapping for Scalability Protocols"
+(sp-websocket-mapping-01) by Martin Sustrik and Garrett D'Amore.
+
+https://github.com/nanomsg/nanomsg/tree/master/rfc
