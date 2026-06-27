@@ -24,7 +24,7 @@ A pure, dependency-free, **NativeAOT-ready** .NET implementation of the **Scalab
 
 > The `netstandard` builds add polyfill packages (`System.Memory`, `System.IO.Pipelines`, `System.Threading.Channels`, `Microsoft.Bcl.AsyncInterfaces`, PolySharp, …) **only** for those target frameworks. The `net8.0`/`net9.0`/`net10.0` output is byte-identical to a build without netstandard support — there is no performance impact on modern runtimes.
 >
-> `NanoMsgSharp.Dtls` targets `netstandard2.1`, `net8.0`, `net9.0`, and `net10.0` (its DTLS dependency does not support `netstandard2.0`).
+> `NanoMsgSharp.Dtls` targets `netstandard2.0`, `netstandard2.1`, `net8.0`, `net9.0`, and `net10.0` (it requires DtlsSharp ≥ 1.0.1, the first DtlsSharp release with a `netstandard2.0` build).
 
 ## Scalability protocols
 
