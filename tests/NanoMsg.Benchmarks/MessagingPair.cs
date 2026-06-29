@@ -64,29 +64,57 @@ internal sealed class MessagingPair : IAsyncDisposable
         int port = await recv.BindAsync(addr);
         snd.Connect(BenchTransports.Connect(t, addr, port));
         await snd.WaitForConnectionsAsync(1, ready);
+        bool reliable = BenchTransports.IsStream(t);
 
-        Task Run(byte[] payload, int count) => Task.Run(async () =>
-        {
-            Task receiver = Task.Run(async () =>
+        Task Run(byte[] payload, int count) => SendAndDrainAsync(
+            count,
+            reliable,
+            async c =>
             {
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < c; i++)
                 {
-                    using NanoMessage m = await receive(recv, default);
+                    await send(snd, payload, default);
                 }
-            });
-            for (int i = 0; i < count; i++)
-            {
-                await send(snd, payload, default);
-            }
-
-            await receiver;
-        });
+            },
+            ct => receive(recv, ct));
 
         return new MessagingPair(Run, async () =>
         {
             await snd.DisposeAsync();
             await recv.DisposeAsync();
         });
+    }
+
+    // Sends <paramref name="count"/> messages and drains the receiver. Stream transports are reliable, so
+    // every message is awaited (true end-to-end throughput); datagram transports may drop a message, so
+    // the drain is time-bounded to avoid waiting forever for one that never arrives.
+    private static async Task SendAndDrainAsync(
+        int count, bool reliable, Func<int, Task> sendAll,
+        Func<CancellationToken, ValueTask<NanoMessage>> receiveOne)
+    {
+        using CancellationTokenSource drain = new();
+        Task receiver = Task.Run(async () =>
+        {
+            try
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    using NanoMessage m = await receiveOne(drain.Token);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        });
+
+        await sendAll(count);
+
+        if (!reliable && await Task.WhenAny(receiver, Task.Delay(TimeSpan.FromSeconds(2))) != receiver)
+        {
+            await drain.CancelAsync();
+        }
+
+        await receiver;
     }
 
     private static async Task<MessagingPair> PubSubAsync(BenchTransport t, X509Certificate2? cert, TimeSpan ready)
@@ -99,23 +127,19 @@ internal sealed class MessagingPair : IAsyncDisposable
         sub.Subscribe(ReadOnlySpan<byte>.Empty);
         await pub.WaitForConnectionsAsync(1, ready);
         await Task.Delay(200);
+        bool reliable = BenchTransports.IsStream(t);
 
-        Task Run(byte[] payload, int count) => Task.Run(async () =>
-        {
-            Task receiver = Task.Run(async () =>
+        Task Run(byte[] payload, int count) => SendAndDrainAsync(
+            count,
+            reliable,
+            async c =>
             {
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < c; i++)
                 {
-                    using NanoMessage m = await sub.ReceiveAsync();
+                    await pub.SendAsync(payload);
                 }
-            });
-            for (int i = 0; i < count; i++)
-            {
-                await pub.SendAsync(payload);
-            }
-
-            await receiver;
-        });
+            },
+            ct => sub.ReceiveAsync(ct));
 
         return new MessagingPair(Run, async () =>
         {

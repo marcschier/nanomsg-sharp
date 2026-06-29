@@ -36,6 +36,40 @@ The matrix reports an **Ops/sec** column (operations per second = `1e9 / Mean(ns
 | `FramingBenchmarks` | The zero-allocation length-prefix framing primitives. Expect **0 B** allocated. |
 | `NativeThroughputBenchmarks` | A native `libnanomsg` PUSH/PULL baseline (via P/Invoke) for side-by-side comparison. |
 
+## Example results
+
+Indicative numbers from a Windows dev box (BenchmarkDotNet `ShortRun`, .NET 10) — **not** authoritative. Run the suite at full fidelity on a quiet machine for real comparisons; treat the in-process rows (no OS scheduling or network cost) as the most stable, and the network rows as ballpark (their `ShortRun` variance is high). Ops/sec is messages/sec for one-way protocols and round trips/sec for REQ/REP.
+
+Framing primitives (zero-allocation, very stable):
+
+| Method | Size | Mean | Allocated |
+| --- | --- | --- | --- |
+| `WriteFrame` | 64 B | ~19 ns | 0 B |
+| `WriteFrame` | 64 KiB | ~3.2 µs | 0 B |
+| `ReadFrame` | 64 B | ~41 ns | 0 B |
+| `ReadFrame` | 64 KiB | ~37 ns | 0 B |
+
+PUSH/PULL throughput, 64-byte messages:
+
+| Transport | Ops/sec | Mean/op |
+| --- | --- | --- |
+| `inproc` | ~1,300,000 | ~0.75 µs |
+| `udp` | ~60,000 | ~17 µs |
+| `dtls+udp` | ~48,000 | ~21 µs |
+| `quic` | ~35,000 | ~29 µs |
+| `tls+tcp` | ~32,000 | ~31 µs |
+| `tcp` | ~30,000 | ~30 µs |
+
+REQ/REP round trips, 64-byte messages:
+
+| Transport | Ops/sec |
+| --- | --- |
+| `inproc` | ~105,000 |
+| `tcp` | ~12,000 |
+| `tls+tcp` | ~9,000 |
+
+> Datagram transports (`udp`, `dtls+udp`) are unreliable: at large sizes (256 KiB / 1 MiB) loopback drops packets, so the matrix **bounds** the receive wait (≈2 s) rather than hanging — those rows reflect the bound, not sustained throughput. Stream transports carry every byte and report true end-to-end rates.
+
 ## Native comparison (Linux)
 
 The `NativeThroughputBenchmarks` class P/Invokes the reference C library and therefore only runs where it is installed:
