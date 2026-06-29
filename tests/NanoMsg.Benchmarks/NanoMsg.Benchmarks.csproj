@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\NanoMsg\NanoMsg.csproj" />
+    <ProjectReference Include="..\..\src\NanoMsg.Dtls\NanoMsg.Dtls.csproj" />
   </ItemGroup>
 
 </Project>
