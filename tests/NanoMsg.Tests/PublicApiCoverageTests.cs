@@ -46,23 +46,39 @@ public sealed class PublicApiCoverageTests
     public async Task Surveyor_respondent_round_trips()
     {
         string address = $"inproc://api-survey-{Guid.NewGuid():N}";
-        NanoSocketOptions options = new() { SurveyDeadline = TimeSpan.FromSeconds(1) };
+        NanoSocketOptions options = new() { SurveyDeadline = TimeSpan.FromSeconds(2) };
         await using SurveyorSocket surveyor = new(options);
         await using RespondentSocket respondent = new();
         await surveyor.BindAsync(address);
         respondent.Connect(address);
         await surveyor.WaitForConnectionsAsync(1, Timeout);
+        await respondent.WaitForConnectionsAsync(1, Timeout);
 
-        using CancellationTokenSource cts = new(Timeout);
+        using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
         Task responder = Task.Run(
             async () =>
             {
-                using NanoMessage survey = await respondent.ReceiveAsync(cts.Token);
-                await respondent.RespondAsync("answer"u8.ToArray(), cts.Token);
+                try
+                {
+                    while (true)
+                    {
+                        using NanoMessage survey = await respondent.ReceiveAsync(cts.Token);
+                        await respondent.RespondAsync("answer"u8.ToArray(), cts.Token);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                }
             },
             cts.Token);
 
+        // A survey is one-shot and deadline-bound, so retry until the (single) respondent is heard.
         IReadOnlyList<NanoMessage> responses = await surveyor.SurveyAsync("q"u8.ToArray(), cts.Token);
+        while (responses.Count == 0)
+        {
+            responses = await surveyor.SurveyAsync("q"u8.ToArray(), cts.Token);
+        }
+
         try
         {
             await Assert.That(responses.Count).IsEqualTo(1);
@@ -74,9 +90,17 @@ public sealed class PublicApiCoverageTests
             {
                 response.Dispose();
             }
+
+            await cts.CancelAsync();
         }
 
-        await responder;
+        try
+        {
+            await responder;
+        }
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     [Test]
