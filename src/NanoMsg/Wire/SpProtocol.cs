@@ -70,7 +70,7 @@ internal static class SpProtocols
         _ => false,
     };
 
-    /// <summary>Determines whether <paramref name="value"/> is one of the ten known protocols.</summary>
+    /// <summary>Determines whether <paramref name="value"/> is one of the eleven known protocols.</summary>
     public static bool IsDefined(SpProtocol value) => value switch
     {
         SpProtocol.Pair or SpProtocol.Pair1 or SpProtocol.Pub or SpProtocol.Sub or SpProtocol.Req

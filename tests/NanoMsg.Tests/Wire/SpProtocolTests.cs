@@ -50,6 +50,7 @@ public sealed class SpProtocolTests
     public async Task IsDefined_distinguishes_known_protocols()
     {
         await Assert.That(SpProtocols.IsDefined(SpProtocol.Surveyor)).IsTrue();
+        await Assert.That(SpProtocols.IsDefined(SpProtocol.Pair1)).IsTrue();
         await Assert.That(SpProtocols.IsDefined((SpProtocol)1234)).IsFalse();
     }
 
