@@ -22,6 +22,25 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
+  <!-- ───────────────────────────── Strong-name signing ──────────────────────────────
+       Every assembly in the solution is strong-named with a single committed key. Strong
+       naming is an identity mechanism (not tamper protection — that is Authenticode), so the
+       key is checked in (see .gitattributes "*.snk binary"). Roslyn signs on every OS, so no
+       sn.exe is needed at build time. Setting $(PublicKey) makes the SDK auto-append
+       ", PublicKey=…" to every InternalsVisibleTo item, keeping friend access valid for the
+       now strong-named assemblies (otherwise CS1726). All target frameworks are .NET Core, so
+       there is no strong-name → unsigned-reference load restriction. -->
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)eng/NanoMsg.snk</AssemblyOriginatorKeyFile>
+    <PublicKey>002400000480000014010000060200000024000052534131000800000100010091123228E21FC009397E00DBE6F72F62ED66B20514597AF5D097461AD581B4A437824EE4B2FA26EECA73C954E844DD490ACB85272F8D396109CFC1F5C0B855B7C2D09FDBF5573A456974BFD85384E36685E56B5A5DDDC541D334DD3217EE9F656E008A737B58F9A36C22FFE4C6ABCCAC4DBF607699AA566874057E8BF2D2815EAE5B72F65EC48A3F5FB6771BD3C864B04971FA26EA36D74025AD5BA65385FA85CA5818B8DB3F17773E02029FC6E628B596BEA55557365A444CE4090E18207C3DE059D9B7299093F5C97143FECDE44D645581B25671115504A8FD4B042584B905BB5CF3BC6CEBDEAC8B41F8A1281F18AEB95CA6B04E3AFB06E7195DA86CB71EC8</PublicKey>
+    <!-- CS8002: a strong-named assembly referencing a non-strong-named one (DtlsSharp's
+         netstandard targets, TUnit, Rocks). Harmless on .NET Core, where strong-name references
+         are not enforced at load time; suppressed solution-wide so signing does not break the
+         TreatWarningsAsErrors build. -->
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
