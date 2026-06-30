@@ -215,6 +215,39 @@ public sealed class PublicApiCoverageTests
         await secondResponder;
     }
 
+    [Test]
+    public async Task Operations_after_dispose_throw_object_disposed()
+    {
+        PushSocket push = new();
+        await push.DisposeAsync();
+
+        // DisposeAsync is idempotent: a second call is a no-op rather than a throw.
+        await push.DisposeAsync();
+
+        bool connectThrew = false;
+        try
+        {
+            push.Connect($"inproc://disposed-{Guid.NewGuid():N}");
+        }
+        catch (ObjectDisposedException)
+        {
+            connectThrew = true;
+        }
+
+        bool sendThrew = false;
+        try
+        {
+            await push.SendAsync("x"u8.ToArray());
+        }
+        catch (ObjectDisposedException)
+        {
+            sendThrew = true;
+        }
+
+        await Assert.That(connectThrew).IsTrue();
+        await Assert.That(sendThrew).IsTrue();
+    }
+
     private static async Task<string> ReceiveText(Func<CancellationToken, ValueTask<NanoMessage>> receive)
     {
         using CancellationTokenSource cts = new(Timeout);

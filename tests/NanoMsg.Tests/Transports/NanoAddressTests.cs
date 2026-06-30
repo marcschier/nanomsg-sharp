@@ -162,6 +162,10 @@ public sealed class NanoAddressTests
         await Assert.That(NanoAddress.TryParse("tcp://host", out _)).IsFalse();
         await Assert.That(NanoAddress.TryParse("nonsense", out _)).IsFalse();
         await Assert.That(NanoAddress.TryParse("inproc://", out _)).IsFalse();
+        await Assert.That(NanoAddress.TryParse("tcp://host:-1", out _)).IsFalse();
+        await Assert.That(NanoAddress.TryParse("tcp://[::1", out _)).IsFalse();
+        await Assert.That(NanoAddress.TryParse("tcp://[::1]", out _)).IsFalse();
+        await Assert.That(NanoAddress.TryParse("tcp://[]:5555", out _)).IsFalse();
     }
 
     [Test]

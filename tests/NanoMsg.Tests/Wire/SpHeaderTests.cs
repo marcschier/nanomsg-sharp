@@ -8,7 +8,7 @@ public sealed class SpHeaderTests
 {
     private static readonly SpProtocol[] AllProtocols =
     [
-        SpProtocol.Pair, SpProtocol.Pub, SpProtocol.Sub, SpProtocol.Req, SpProtocol.Rep,
+        SpProtocol.Pair, SpProtocol.Pair1, SpProtocol.Pub, SpProtocol.Sub, SpProtocol.Req, SpProtocol.Rep,
         SpProtocol.Push, SpProtocol.Pull, SpProtocol.Surveyor, SpProtocol.Respondent, SpProtocol.Bus,
     ];
 

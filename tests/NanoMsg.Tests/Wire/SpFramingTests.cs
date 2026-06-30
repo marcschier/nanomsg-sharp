@@ -113,4 +113,28 @@ public sealed class SpFramingTests
 
         await Assert.That(threw).IsTrue();
     }
+
+    [Test]
+    public async Task Writes_header_framed_message_with_expected_layout()
+    {
+        byte[] body = [1, 2, 3];
+        const uint header = 0x8000_0001u;
+        ArrayBufferWriter<byte> writer = new();
+        SpFraming.WriteFrame(writer, header, body);
+
+        byte[] expected =
+        [
+            0, 0, 0, 0, 0, 0, 0, 7, // length prefix = 4-byte header + 3-byte body, big-endian
+            0x80, 0x00, 0x00, 0x01, // header, big-endian
+            1, 2, 3,                // body
+        ];
+        await Assert.That(writer.WrittenMemory.ToArray().SequenceEqual(expected)).IsTrue();
+
+        // The framed body is the 4-byte header followed by the payload, recoverable via TryReadFrame.
+        ReadOnlySequence<byte> buffer = new(writer.WrittenMemory);
+        await Assert.That(SpFraming.TryReadFrame(ref buffer, out ReadOnlySequence<byte> frame)).IsTrue();
+        await Assert.That(frame.Length).IsEqualTo(7L);
+        await Assert.That(frame.ToArray().SequenceEqual(new byte[] { 0x80, 0x00, 0x00, 0x01, 1, 2, 3 })).IsTrue();
+        await Assert.That(buffer.Length).IsEqualTo(0L);
+    }
 }
