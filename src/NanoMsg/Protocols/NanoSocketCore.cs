@@ -430,19 +430,37 @@ internal abstract class NanoSocketCore : IAsyncDisposable
                 break;
             }
 
-            if (_options.ReconnectIntervalMax > TimeSpan.Zero)
-            {
-                long doubled = Math.Min(delay.Ticks * 2, _options.ReconnectIntervalMax.Ticks);
-                delay = TimeSpan.FromTicks(doubled);
-            }
+            delay = NextReconnectDelay(delay, _options.ReconnectIntervalMax);
         }
     }
+
+    /// <summary>
+    /// Computes the next reconnect back-off delay: doubles <paramref name="current"/> but never
+    /// exceeds <paramref name="max"/>. A non-positive <paramref name="max"/> disables growth and
+    /// returns <paramref name="current"/> unchanged.
+    /// </summary>
+    internal static TimeSpan NextReconnectDelay(TimeSpan current, TimeSpan max)
+    {
+        if (max <= TimeSpan.Zero)
+        {
+            return current;
+        }
+
+        long doubled = Math.Min(current.Ticks * 2, max.Ticks);
+        return TimeSpan.FromTicks(doubled);
+    }
+
+    /// <summary>
+    /// Resolves the effective maximum inbound body length: a negative configured value means
+    /// unlimited (<see cref="long.MaxValue"/>); any non-negative value is used verbatim.
+    /// </summary>
+    internal static long EffectiveMaxBody(long configured) => configured < 0 ? long.MaxValue : configured;
 
     private async Task ReadLoopAsync(NanoPipe pipe)
     {
         CancellationToken cancellationToken = _shutdown.Token;
         PipeReader reader = pipe.Input;
-        long maxBody = _options.ReceiveMaxMessageSize < 0 ? long.MaxValue : _options.ReceiveMaxMessageSize;
+        long maxBody = EffectiveMaxBody(_options.ReceiveMaxMessageSize);
         try
         {
             while (true)

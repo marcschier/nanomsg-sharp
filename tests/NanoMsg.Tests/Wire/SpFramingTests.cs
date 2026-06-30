@@ -115,6 +115,21 @@ public sealed class SpFramingTests
     }
 
     [Test]
+    public async Task Reads_a_body_whose_length_equals_the_maximum()
+    {
+        // A frame exactly at the limit is permitted; only strictly larger bodies throw.
+        byte[] payload = [1, 2, 3, 4];
+        ArrayBufferWriter<byte> writer = new();
+        SpFraming.WriteFrame(writer, payload);
+
+        ReadOnlySequence<byte> buffer = new(writer.WrittenMemory);
+        bool read = SpFraming.TryReadFrame(ref buffer, out ReadOnlySequence<byte> body, maxBodyLength: 4);
+
+        await Assert.That(read).IsTrue();
+        await Assert.That(body.ToArray().SequenceEqual(payload)).IsTrue();
+    }
+
+    [Test]
     public async Task Writes_header_framed_message_with_expected_layout()
     {
         byte[] body = [1, 2, 3];

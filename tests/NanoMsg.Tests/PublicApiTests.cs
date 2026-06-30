@@ -102,6 +102,15 @@ public sealed class PublicApiTests
         await Assert.That(threw).IsTrue();
     }
 
+    [Test]
+    public async Task CopyFrom_handles_an_empty_payload()
+    {
+        using NanoMessage message = NanoMessage.CopyFrom(default);
+
+        await Assert.That(message.Payload.Length).IsEqualTo(0);
+        await Assert.That(message.Span.Length).IsEqualTo(0);
+    }
+
     private static async Task<string> ReceiveText(Func<CancellationToken, ValueTask<NanoMessage>> receive)
     {
         using CancellationTokenSource cts = new(Timeout);
