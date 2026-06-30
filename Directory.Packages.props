@@ -14,7 +14,7 @@
 
   <!-- Runtime dependency of the optional NanoMsgSharp.Dtls package (managed DTLS over UDP). -->
   <ItemGroup>
-    <PackageVersion Include="DtlsSharp" Version="1.0.1" />
+    <PackageVersion Include="DtlsSharp" Version="1.1.0" />
   </ItemGroup>
 
   <!-- net8.0 polyfill: System.IO.Pipelines entered the base reference pack in net9.0. -->

@@ -31,6 +31,13 @@
     <PackageReference Include="Rocks" />
   </ItemGroup>
 
+  <!-- Rocks' runtime assembly is not strong-named; this strong-named test project therefore emits
+       CS8002 against it. The reference is benign on .NET Core (strong-name references are not load
+       enforced), so suppress it just where Rocks is consumed. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
+  </PropertyGroup>
+
   <!-- Coverage collector breaks `PublishAot`; include it only for JIT runs. -->
   <ItemGroup Condition="'$(AotTest)' != 'true'">
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
