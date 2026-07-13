@@ -7,7 +7,7 @@
 
   <!-- Build / tooling (all projects) -->
   <ItemGroup>
-    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.85" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.91" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.15.0" />
   </ItemGroup>
@@ -19,14 +19,14 @@
 
   <!-- net8.0 polyfill: System.IO.Pipelines entered the base reference pack in net9.0. -->
   <ItemGroup>
-    <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Pipelines" Version="10.0.9" />
   </ItemGroup>
 
   <!-- netstandard 2.0/2.1 polyfills (referenced only for those TFMs; see Directory.Build.props). -->
   <ItemGroup>
     <PackageVersion Include="PolySharp" Version="1.16.0" />
-    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
-    <PackageVersion Include="System.Threading.Channels" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.9" />
+    <PackageVersion Include="System.Threading.Channels" Version="10.0.9" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
   </ItemGroup>
