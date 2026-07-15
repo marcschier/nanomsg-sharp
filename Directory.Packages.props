@@ -19,21 +19,21 @@
 
   <!-- net8.0 polyfill: System.IO.Pipelines entered the base reference pack in net9.0. -->
   <ItemGroup>
-    <PackageVersion Include="System.IO.Pipelines" Version="10.0.9" />
+    <PackageVersion Include="System.IO.Pipelines" Version="10.0.10" />
   </ItemGroup>
 
   <!-- netstandard 2.0/2.1 polyfills (referenced only for those TFMs; see Directory.Build.props). -->
   <ItemGroup>
     <PackageVersion Include="PolySharp" Version="1.16.0" />
-    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.9" />
-    <PackageVersion Include="System.Threading.Channels" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.10" />
+    <PackageVersion Include="System.Threading.Channels" Version="10.0.10" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
   </ItemGroup>
 
   <!-- Test stack -->
   <ItemGroup>
-    <PackageVersion Include="TUnit" Version="1.56.35" />
+    <PackageVersion Include="TUnit" Version="1.58.0" />
     <PackageVersion Include="Rocks" Version="10.3.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.8.0" />
   </ItemGroup>
