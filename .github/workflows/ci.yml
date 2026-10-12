@@ -15,6 +15,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Retain the working provider until stable .NET servicing fixes dotnet/runtime#133096.
+  MSQUIC_VERSION: '2.6.0'
+
 jobs:
   build-test:
     name: build & test (${{ matrix.os }})
@@ -37,7 +41,7 @@ jobs:
 
       - name: Install MsQuic (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libmsquic
+        run: sudo apt-get update && sudo apt-get install -y libmsquic="${MSQUIC_VERSION}"
 
       - name: Restore
         run: dotnet restore NanoMsg.slnx
@@ -87,7 +91,7 @@ jobs:
 
       - name: Install NativeAOT prerequisites (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libmsquic
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libmsquic="${MSQUIC_VERSION}"
 
       - name: Publish test suite as NativeAOT
         run: >
@@ -117,7 +121,7 @@ jobs:
             10.0.x
 
       - name: Install MsQuic
-        run: sudo apt-get update && sudo apt-get install -y libmsquic
+        run: sudo apt-get update && sudo apt-get install -y libmsquic="${MSQUIC_VERSION}"
 
       - name: Test with coverage
         run: >

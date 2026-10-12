@@ -119,6 +119,11 @@ dotnet run --project samples/NanoMsg.Samples
 Use the stable .NET SDK 10.0.401 or a compatible later .NET 10 SDK, as configured in `global.json`.
 The .NET 8, 9, and 10 runtimes are needed to run the full multi-framework test suite.
 
+Linux CI retains MsQuic 2.6.0: versions 2.6.1 and 2.6.2 regress IP-address QUIC handshakes
+with the current stable .NET 9/10 runtimes. Remove this compatibility pin only after stable
+servicing containing the [upstream fix](https://github.com/dotnet/runtime/issues/133096)
+is available and the original QUIC and NativeAOT tests pass. TLS validation is unchanged.
+
 ```shell
 dotnet build NanoMsg.slnx -c Release
 dotnet test NanoMsg.slnx -c Release

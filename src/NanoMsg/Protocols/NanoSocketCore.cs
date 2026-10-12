@@ -108,11 +108,6 @@ internal abstract class NanoSocketCore : IAsyncDisposable
             await listener.DisposeAsync().ConfigureAwait(false);
         }
 
-        foreach (NanoPipe pipe in pipes)
-        {
-            await pipe.DisposeAsync().ConfigureAwait(false);
-        }
-
         try
         {
             await Task.WhenAll(loops).ConfigureAwait(false);
@@ -120,6 +115,11 @@ internal abstract class NanoSocketCore : IAsyncDisposable
         catch (OperationCanceledException)
         {
             // Expected: the loops observe the shutdown token.
+        }
+
+        foreach (NanoPipe pipe in pipes)
+        {
+            await pipe.DisposeAsync().ConfigureAwait(false);
         }
 
         _inbound.Writer.TryComplete();
@@ -358,7 +358,16 @@ internal abstract class NanoSocketCore : IAsyncDisposable
             while (!cancellationToken.IsCancellationRequested)
             {
                 INanoConnection connection = await listener.AcceptAsync(cancellationToken).ConfigureAwait(false);
-                _ = EstablishAcceptedAsync(connection, cancellationToken);
+                lock (_gate)
+                {
+                    if (_disposed == 0)
+                    {
+                        TrackAcceptedLoop(EstablishAcceptedAsync(connection, cancellationToken));
+                        continue;
+                    }
+                }
+
+                await connection.DisposeAsync().ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
@@ -370,6 +379,25 @@ internal abstract class NanoSocketCore : IAsyncDisposable
         catch (NanoMsgException)
         {
         }
+    }
+
+    private void TrackAcceptedLoop(Task loop)
+    {
+        _loops.Add(loop);
+        // Retain faulted loops so DisposeAsync propagates their errors; release successful peers.
+        _ = loop.ContinueWith(
+            static (completed, state) =>
+            {
+                NanoSocketCore core = (NanoSocketCore)state!;
+                lock (core._gate)
+                {
+                    core._loops.Remove(completed);
+                }
+            },
+            this,
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 
     private async Task EstablishAcceptedAsync(INanoConnection connection, CancellationToken cancellationToken)
