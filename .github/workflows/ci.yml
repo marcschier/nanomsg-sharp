@@ -15,6 +15,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Retain the working provider until stable .NET servicing fixes dotnet/runtime#133096.
+  MSQUIC_VERSION: '2.6.0'
+
 jobs:
   build-test:
     name: build & test (${{ matrix.os }})
@@ -24,11 +28,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -37,13 +41,16 @@ jobs:
 
       - name: Install MsQuic (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libmsquic
+        run: sudo apt-get update && sudo apt-get install -y libmsquic="${MSQUIC_VERSION}"
 
       - name: Restore
         run: dotnet restore NanoMsg.slnx
 
       - name: Build
         run: dotnet build NanoMsg.slnx -c Release --no-restore
+
+      - name: Build benchmarks
+        run: dotnet build tests/NanoMsg.Benchmarks/NanoMsg.Benchmarks.csproj -c Release
 
       - name: Verify formatting
         if: runner.os == 'Linux'
@@ -71,11 +78,11 @@ jobs:
           - os: macos-latest
             rid: osx-arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -84,7 +91,7 @@ jobs:
 
       - name: Install NativeAOT prerequisites (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libmsquic
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libmsquic="${MSQUIC_VERSION}"
 
       - name: Publish test suite as NativeAOT
         run: >
@@ -102,11 +109,11 @@ jobs:
     name: coverage gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -114,7 +121,7 @@ jobs:
             10.0.x
 
       - name: Install MsQuic
-        run: sudo apt-get update && sudo apt-get install -y libmsquic
+        run: sudo apt-get update && sudo apt-get install -y libmsquic="${MSQUIC_VERSION}"
 
       - name: Test with coverage
         run: >
@@ -125,18 +132,18 @@ jobs:
         shell: pwsh
         run: >
           ./eng/check-coverage.ps1
-          -CoverageFile tests/NanoMsg.Tests/bin/Release/net10.0/TestResults/coverage.cobertura.xml
+          -CoverageFile TestResults/coverage.cobertura.xml
           -MinLineRate 0.83
 
   interop:
     name: interop (native libnanomsg + libnng)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -158,11 +165,11 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0   # Nerdbank.GitVersioning needs full history + tags
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x

@@ -96,7 +96,11 @@ internal sealed class WebSocketConnection : INanoConnection
 
             await reader.CompleteAsync().ConfigureAwait(false);
         }
-        catch (Exception ex) when (ex is OperationCanceledException or WebSocketException or IOException
+        catch (WebSocketException ex)
+        {
+            await reader.CompleteAsync(new IOException("WebSocket send failed.", ex)).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or IOException
             or ObjectDisposedException or InvalidOperationException or NanoMsgException)
         {
             await reader.CompleteAsync(ex).ConfigureAwait(false);
@@ -120,7 +124,11 @@ internal sealed class WebSocketConnection : INanoConnection
 
             await writer.CompleteAsync().ConfigureAwait(false);
         }
-        catch (Exception ex) when (ex is OperationCanceledException or WebSocketException or IOException
+        catch (WebSocketException ex)
+        {
+            await writer.CompleteAsync(new IOException("WebSocket receive failed.", ex)).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or IOException
             or ObjectDisposedException or InvalidOperationException or NanoMsgException)
         {
             await writer.CompleteAsync(ex).ConfigureAwait(false);
