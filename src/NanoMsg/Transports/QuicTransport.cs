@@ -137,11 +137,9 @@ internal sealed class QuicTransport : INanoTransport
         try
         {
             connection = await QuicConnection.ConnectAsync(clientOptions, cancellationToken).ConfigureAwait(false);
-            Console.Error.WriteLine("[DEBUG-nmsg-quic] Client TLS handshake completed.");
         }
         catch (Exception ex) when (ex is QuicException or AuthenticationException or SocketException or IOException)
         {
-            Console.Error.WriteLine($"[DEBUG-nmsg-quic] Client TLS handshake failed: {ex}");
             throw new NanoMsgException($"QUIC handshake failed for '{address.Original}': {ex.Message}", ex);
         }
 
@@ -149,7 +147,6 @@ internal sealed class QuicTransport : INanoTransport
         {
             QuicStream stream = await connection
                 .OpenOutboundStreamAsync(QuicStreamType.Bidirectional, cancellationToken).ConfigureAwait(false);
-            Console.Error.WriteLine("[DEBUG-nmsg-quic] Client bidirectional stream opened.");
             return new QuicNanoConnection(connection, stream);
         }
         catch (Exception ex) when (ex is QuicException or IOException)
@@ -177,11 +174,9 @@ internal sealed class QuicNanoListener : INanoListener
     public async ValueTask<INanoConnection> AcceptAsync(CancellationToken cancellationToken)
     {
         QuicConnection connection = await _listener.AcceptConnectionAsync(cancellationToken).ConfigureAwait(false);
-        Console.Error.WriteLine("[DEBUG-nmsg-quic] Server TLS handshake completed.");
         try
         {
             QuicStream stream = await connection.AcceptInboundStreamAsync(cancellationToken).ConfigureAwait(false);
-            Console.Error.WriteLine("[DEBUG-nmsg-quic] Server bidirectional stream accepted.");
             return new QuicNanoConnection(connection, stream);
         }
         catch

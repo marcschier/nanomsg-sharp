@@ -53,17 +53,15 @@ internal sealed class NanoPipe : IAsyncDisposable
         ReadOnlyMemory<byte> body,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (ObjectDisposedException)
-        {
-            throw new NanoMsgException("The connection was closed by the peer.");
-        }
+        await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                throw new NanoMsgException("The connection was closed by the peer.");
+            }
+
             if (hasHeader)
             {
                 SpFraming.WriteFrame(_connection.Output, header, body.Span);
@@ -74,7 +72,7 @@ internal sealed class NanoPipe : IAsyncDisposable
             }
 
             FlushResult result = await _connection.Output.FlushAsync(cancellationToken).ConfigureAwait(false);
-            if (result.IsCompleted)
+            if (result.IsCompleted || Volatile.Read(ref _disposed) != 0)
             {
                 throw new NanoMsgException("The connection was closed by the peer.");
             }
@@ -86,14 +84,7 @@ internal sealed class NanoPipe : IAsyncDisposable
         }
         finally
         {
-            try
-            {
-                _sendLock.Release();
-            }
-            catch (ObjectDisposedException)
-            {
-                // The pipe was disposed concurrently; there is nothing to release.
-            }
+            _sendLock.Release();
         }
     }
 
@@ -105,7 +96,16 @@ internal sealed class NanoPipe : IAsyncDisposable
             return;
         }
 
-        await _connection.DisposeAsync().ConfigureAwait(false);
-        _sendLock.Dispose();
+        _connection.Output.CancelPendingFlush();
+        await _sendLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await _connection.DisposeAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            // Queued senders must acquire the lock and observe disposal, rather than be stranded.
+            _sendLock.Release();
+        }
     }
 }

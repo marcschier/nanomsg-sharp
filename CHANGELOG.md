@@ -8,5 +8,7 @@
 - Use the stable .NET SDK 10.0.401 and update checkout, setup-dotnet, and NuGet login actions.
 - Build benchmarks in CI and follow the upgraded test runner's coverage report location,
   retaining the 83% line-coverage gate.
+- Serialize pipe shutdown with sends so reconnecting cannot complete a writer during frame writes
+  or strand queued senders.
 - Restrict NuGet.org promotion to this repository's NanoMsgSharp and NanoMsgSharp.Dtls packages.
 - Retain the stable release channel, assembly identities, and all five supported target frameworks.
