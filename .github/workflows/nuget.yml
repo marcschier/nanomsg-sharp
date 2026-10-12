@@ -3,8 +3,8 @@ name: nuget
 # Manually promotes the latest published NanoMsgSharp packages from the repository's GitHub Packages
 # feed to nuget.org using NuGet trusted publishing (OIDC short-lived token — no stored API key). Run
 # this from the Actions tab once a version has been published to GitHub Packages by the tag-triggered
-# CI publish job. Every package in the feed is promoted; leave "version" blank to promote each
-# package's latest published version.
+# CI publish job. Only NanoMsgSharp and NanoMsgSharp.Dtls are promoted; leave "version" blank
+# to promote each package's latest published version.
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
       packages: read    # Read the packages from the GitHub Packages feed
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: '10.0.x'
 
@@ -48,15 +48,11 @@ jobs:
               | jq -r --arg t "$1" '[.resources[] | select(."@type"|startswith($t)) | ."@id"] | first'
           }
           base=$(svc "PackageBaseAddress/3.0.0"); base=${base%/}
-          search=$(svc "SearchQueryService"); search=${search%/}
-
-          # Discover every package id in the feed; fall back to the known ids if search is unavailable.
-          ids=$(curl -fsSL -H "$auth" "${search}?q=&take=1000&prerelease=true" \
-            | jq -r '.data[].id' 2>/dev/null || true)
-          if [ -z "${ids}" ]; then
-            echo "Search returned nothing; falling back to the known package list." >&2
-            ids="NanoMsgSharp NanoMsgSharp.Dtls"
+          if [ -z "$base" ] || [ "$base" = "null" ]; then
+            echo "GitHub Packages did not expose a package download service." >&2
+            exit 1
           fi
+          ids="NanoMsgSharp NanoMsgSharp.Dtls"
           echo "Packages to promote:" $ids
 
           mkdir -p ./download
@@ -75,7 +71,7 @@ jobs:
 
       - name: NuGet login (OIDC trusted publishing)
         id: login
-        uses: NuGet/login@v1
+        uses: NuGet/login@v1.2.0
         with:
           user: ${{ secrets.NUGET_USER }}
 

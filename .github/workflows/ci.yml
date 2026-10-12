@@ -24,11 +24,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -44,6 +44,9 @@ jobs:
 
       - name: Build
         run: dotnet build NanoMsg.slnx -c Release --no-restore
+
+      - name: Build benchmarks
+        run: dotnet build tests/NanoMsg.Benchmarks/NanoMsg.Benchmarks.csproj -c Release
 
       - name: Verify formatting
         if: runner.os == 'Linux'
@@ -71,11 +74,11 @@ jobs:
           - os: macos-latest
             rid: osx-arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -102,11 +105,11 @@ jobs:
     name: coverage gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -125,18 +128,18 @@ jobs:
         shell: pwsh
         run: >
           ./eng/check-coverage.ps1
-          -CoverageFile tests/NanoMsg.Tests/bin/Release/net10.0/TestResults/coverage.cobertura.xml
+          -CoverageFile TestResults/coverage.cobertura.xml
           -MinLineRate 0.83
 
   interop:
     name: interop (native libnanomsg + libnng)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
@@ -158,11 +161,11 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0   # Nerdbank.GitVersioning needs full history + tags
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: |
             8.0.x
