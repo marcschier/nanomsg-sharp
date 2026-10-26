@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.4
+
+- Update the BCL compatibility packages to 10.0.14 and TUnit to 1.76.28.
+- Use the stable .NET SDK 10.0.403.
+- Retain DtlsSharp 1.1.1, all five supported target frameworks, and the stable release channel.
+- Keep the MsQuic 2.6.0 Linux CI compatibility pin pending qualification of newer providers.
+
 ## 1.1.3
 
 - Update DtlsSharp to 1.1.1 and the BCL compatibility packages to 10.0.12.

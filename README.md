@@ -116,7 +116,7 @@ dotnet run --project samples/NanoMsg.Samples
 
 ## Building & testing
 
-Use the stable .NET SDK 10.0.401 or a compatible later .NET 10 SDK, as configured in `global.json`.
+Use the stable .NET SDK 10.0.403 or a compatible later .NET 10 SDK, as configured in `global.json`.
 The .NET 8, 9, and 10 runtimes are needed to run the full multi-framework test suite.
 
 Linux CI retains MsQuic 2.6.0: versions 2.6.1 and 2.6.2 regress IP-address QUIC handshakes
