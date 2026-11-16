@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.5
+
+- Update DtlsSharp to 1.1.3 and raise the documented minimum for NanoMsgSharp.Dtls.
+- Update .NET 10 compatibility packages to 10.0.15, PolySharp to 1.17.1, and TUnit to 1.85.0.
+- Use the stable .NET SDK 10.0.404 and setup-dotnet action 6.1.0.
+
 ## 1.1.4
 
 - Update the BCL compatibility packages to 10.0.14 and TUnit to 1.76.28.
